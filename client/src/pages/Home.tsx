@@ -1,10 +1,9 @@
 /* Quiet Craft Editorial: offset compositions, tactile imagery, and one confident CTA. */
-import { FormEvent, useState } from "react";
+import { type FormEvent, type MouseEvent, useState } from "react";
 import {
   ArrowDown,
   ArrowUpRight,
   Check,
-  ChevronDown,
   Coffee,
   Compass,
   Leaf,
@@ -43,8 +42,63 @@ const plans = [
 
 const anchorLinks = [
   { label: "Our method", href: "#method" },
+  { label: "Find your roast", href: "#quiz" },
   { label: "Choose a ritual", href: "#plans" },
   { label: "The fine print", href: "#fine-print" },
+];
+
+const quizQuestions = [
+  {
+    prompt: "How do you like your cup to feel?",
+    helper: "Think about the first sip.",
+    options: [
+      { label: "Bright & lifted", detail: "Citrus, florals, a little spark", score: 0 },
+      { label: "Round & balanced", detail: "Sweet, smooth, quietly complex", score: 1 },
+      { label: "Deep & grounding", detail: "Cocoa, spice, a long finish", score: 2 },
+    ],
+  },
+  {
+    prompt: "What is your usual morning move?",
+    helper: "There is no wrong way to brew.",
+    options: [
+      { label: "Slow pour-over", detail: "A few minutes to pay attention", score: 0 },
+      { label: "One good filter", detail: "Reliable, generous, ready to share", score: 1 },
+      { label: "Short & strong", detail: "Espresso, moka, or a quick reset", score: 2 },
+    ],
+  },
+  {
+    prompt: "How much surprise do you want?",
+    helper: "Choose the feeling you want from your next bag.",
+    options: [
+      { label: "Keep it familiar", detail: "An easy favourite from the first cup", score: 1 },
+      { label: "A thoughtful twist", detail: "A familiar shape with a new note", score: 1 },
+      { label: "Take me somewhere", detail: "A seasonal lot with a point of view", score: 0 },
+    ],
+  },
+];
+
+const roastResults = [
+  {
+    name: "Daybreak",
+    roast: "Light roast",
+    tasting: "Citrus · honey · jasmine",
+    description: "A lifted, quietly electric cup for mornings that start with a little room to notice things.",
+    plan: "The Taster",
+  },
+  {
+    name: "House Ritual",
+    roast: "Medium roast",
+    tasting: "Stone fruit · cocoa · toasted sugar",
+    description: "Our most generous middle way: sweet, composed, and easy to return to every morning.",
+    plan: "The House Ritual",
+  },
+  {
+    name: "Afterglow",
+    roast: "Medium-dark roast",
+    tasting: "Dark chocolate · spice · walnut",
+    description: "A grounded, lingering cup for people who like their mornings to arrive with some weight.",
+    plan: "The Full Table",
+  },
 ];
 
 export default function Home() {
@@ -52,6 +106,16 @@ export default function Home() {
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
   const [selectedPlan, setSelectedPlan] = useState("The House Ritual");
   const [submitted, setSubmitted] = useState(false);
+  const [quizStep, setQuizStep] = useState(0);
+  const [quizScores, setQuizScores] = useState<number[]>([]);
+  const [quizResult, setQuizResult] = useState<(typeof roastResults)[number] | null>(null);
+
+  const scrollToAnchor = (event: MouseEvent<HTMLAnchorElement>, href: string) => {
+    event.preventDefault();
+    setMobileOpen(false);
+    document.querySelector(href)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.history.replaceState(null, "", href);
+  };
 
   const scrollToSubscribe = (planName?: string) => {
     if (planName) setSelectedPlan(planName);
@@ -66,6 +130,24 @@ export default function Home() {
     });
   };
 
+  const handleQuizAnswer = (score: number) => {
+    const nextScores = [...quizScores, score];
+    setQuizScores(nextScores);
+    if (nextScores.length === quizQuestions.length) {
+      const average = nextScores.reduce((total, value) => total + value, 0) / nextScores.length;
+      const resultIndex = average < 0.75 ? 0 : average < 1.5 ? 1 : 2;
+      setQuizResult(roastResults[resultIndex]);
+      return;
+    }
+    setQuizStep((step) => step + 1);
+  };
+
+  const resetQuiz = () => {
+    setQuizStep(0);
+    setQuizScores([]);
+    setQuizResult(null);
+  };
+
   return (
     <div className="site-shell" id="top">
       <header className="site-header">
@@ -76,11 +158,11 @@ export default function Home() {
 
         <nav className="desktop-nav" aria-label="Primary navigation">
           {anchorLinks.map((link) => (
-            <a href={link.href} key={link.href}>{link.label}</a>
+            <a href={link.href} key={link.href} onClick={(event) => scrollToAnchor(event, link.href)}>{link.label}</a>
           ))}
         </nav>
 
-        <a className="header-cta" href="#plans">
+        <a className="header-cta" href="#plans" onClick={(event) => scrollToAnchor(event, "#plans")}>
           Choose your ritual <ArrowUpRight size={16} strokeWidth={1.8} />
         </a>
 
@@ -98,9 +180,9 @@ export default function Home() {
       {mobileOpen && (
         <nav className="mobile-nav" aria-label="Mobile navigation">
           {anchorLinks.map((link) => (
-            <a href={link.href} key={link.href} onClick={() => setMobileOpen(false)}>{link.label}</a>
+            <a href={link.href} key={link.href} onClick={(event) => scrollToAnchor(event, link.href)}>{link.label}</a>
           ))}
-          <a className="mobile-nav-cta" href="#plans" onClick={() => setMobileOpen(false)}>Choose your ritual <ArrowUpRight size={16} /></a>
+          <a className="mobile-nav-cta" href="#plans" onClick={(event) => scrollToAnchor(event, "#plans")}>Choose your ritual <ArrowUpRight size={16} /></a>
         </nav>
       )}
 
@@ -111,8 +193,8 @@ export default function Home() {
             <h1 id="hero-title">A better morning, <em>already on its way.</em></h1>
             <p className="hero-intro">Small-lot coffees, roasted with patience and delivered at the exact moment your pantry needs a little more wonder.</p>
             <div className="hero-actions">
-              <a className="button button-primary" href="#plans">Choose your ritual <ArrowUpRight size={17} /></a>
-              <a className="text-link" href="#method">See how it works <ArrowDown size={15} /></a>
+              <a className="button button-primary" href="#plans" onClick={(event) => scrollToAnchor(event, "#plans")}>Choose your ritual <ArrowUpRight size={17} /></a>
+              <a className="text-link" href="#method" onClick={(event) => scrollToAnchor(event, "#method")}>See how it works <ArrowDown size={15} /></a>
             </div>
             <div className="hero-details" aria-label="Subscription benefits">
               <span><Check size={14} /> Pause or skip anytime</span>
@@ -147,11 +229,49 @@ export default function Home() {
             <p className="eyebrow"><span className="eyebrow-mark">02</span> The Ember &amp; Bean method</p>
             <h2 id="manifesto-title">Coffee that respects <em>the quiet part</em> of your day.</h2>
             <p>We look for coffees with a clear point of view, then roast them slowly enough to keep it. You choose the rhythm; we take care of the rest.</p>
-            <a className="text-link" href="#plans">Choose your ritual <ArrowUpRight size={15} /></a>
+            <a className="text-link" href="#plans" onClick={(event) => scrollToAnchor(event, "#plans")}>Choose your ritual <ArrowUpRight size={15} /></a>
           </div>
           <div className="manifesto-aside">
             <span className="big-number">03</span>
             <p>Ways we make the ritual feel more like yours and less like another delivery.</p>
+          </div>
+        </section>
+
+        <section className="quiz-section section-pad" id="quiz" aria-labelledby="quiz-title">
+          <div className="quiz-intro">
+            <p className="eyebrow"><span className="eyebrow-mark">03</span> A small guide to your next bag</p>
+            <h2 id="quiz-title">Find the roast that fits <em>your morning.</em></h2>
+            <p>Three quick choices, one considered recommendation. No coffee vocabulary test required.</p>
+            <span className="quiz-side-note">Tasting index<br /><strong>03 / 03</strong></span>
+          </div>
+          <div className="quiz-card">
+            {quizResult ? (
+              <div className="quiz-result" aria-live="polite">
+                <span className="quiz-result-kicker">Your morning match</span>
+                <h3>{quizResult.name}</h3>
+                <div className="quiz-result-meta"><span>{quizResult.roast}</span><span>{quizResult.tasting}</span></div>
+                <p>{quizResult.description}</p>
+                <div className="quiz-result-actions">
+                  <button className="button button-primary" type="button" onClick={() => scrollToSubscribe(quizResult.plan)}>Make it my ritual <ArrowUpRight size={17} /></button>
+                  <button className="quiz-reset" type="button" onClick={resetQuiz}>Retake the guide</button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="quiz-progress"><span>Question {quizStep + 1} of {quizQuestions.length}</span><span>{Math.round((quizStep / quizQuestions.length) * 100)}% explored</span></div>
+                <div className="quiz-progress-track"><span style={{ width: `${((quizStep + 1) / quizQuestions.length) * 100}%` }} /></div>
+                <div className="quiz-question-head"><span className="quiz-question-number">0{quizStep + 1}</span><div><h3>{quizQuestions[quizStep].prompt}</h3><p>{quizQuestions[quizStep].helper}</p></div></div>
+                <div className="quiz-option-grid">
+                  {quizQuestions[quizStep].options.map((option) => (
+                    <button className="quiz-option" key={option.label} type="button" onClick={() => handleQuizAnswer(option.score)}>
+                      <span className="quiz-option-index">0{quizQuestions[quizStep].options.indexOf(option) + 1}</span>
+                      <strong>{option.label}</strong>
+                      <small>{option.detail}</small>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </section>
 
@@ -182,7 +302,7 @@ export default function Home() {
             <span className="image-caption">The good stuff, before the label.</span>
           </div>
           <div className="feature-copy">
-            <p className="eyebrow"><span className="eyebrow-mark">03</span> Before it reaches your shelf</p>
+            <p className="eyebrow"><span className="eyebrow-mark">04</span> Before it reaches your shelf</p>
             <h2 id="roast-title">Roasted for <em>the long finish.</em></h2>
             <p>Not dark for drama. Not light for status. We roast to make the whole cup feel generous: bright where it should be, deep where it counts.</p>
             <div className="feature-list">
@@ -196,7 +316,7 @@ export default function Home() {
         <section className="plans section-pad" id="plans" aria-labelledby="plans-title">
           <div className="plans-header">
             <div>
-              <p className="eyebrow"><span className="eyebrow-mark">04</span> Choose your ritual</p>
+              <p className="eyebrow"><span className="eyebrow-mark">05</span> Choose your ritual</p>
               <h2 id="plans-title">Enough coffee. <em>Exactly enough.</em></h2>
             </div>
             <div className="billing-switch" role="group" aria-label="Billing frequency">
@@ -219,7 +339,7 @@ export default function Home() {
 
         <section className="ritual-split section-pad" aria-labelledby="ritual-title">
           <div className="ritual-copy">
-            <p className="eyebrow"><span className="eyebrow-mark">05</span> A little more room in the morning</p>
+            <p className="eyebrow"><span className="eyebrow-mark">06</span> A little more room in the morning</p>
             <h2 id="ritual-title">The ritual is yours. <em>We just send the beans.</em></h2>
             <p>Every box comes with a concise brew note, a roast date, and enough context to make a cup feel considered without making it complicated.</p>
             <div className="ritual-note"><span className="quote-mark">“</span><span>Good coffee should make the day feel like it has started on purpose.</span></div>
@@ -233,7 +353,7 @@ export default function Home() {
         <section className="subscribe section-pad" id="subscribe" aria-labelledby="subscribe-title">
           <div className="subscribe-image-wrap"><img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1200&q=85" alt="Minimal coffee pouches arranged on a warm stone surface" /><span>First box, soon.</span></div>
           <div className="subscribe-panel">
-            <p className="eyebrow"><span className="eyebrow-mark">06</span> Put a better cup on the calendar</p>
+            <p className="eyebrow"><span className="eyebrow-mark">07</span> Put a better cup on the calendar</p>
             <h2 id="subscribe-title">Start with <em>{selectedPlan}.</em></h2>
             <p>Leave your email and we’ll send the simple next step for your first delivery. No noisy inbox, no hard sell—just coffee with somewhere to go.</p>
             <form className="subscribe-form" onSubmit={handleSubmit}>
@@ -247,7 +367,7 @@ export default function Home() {
 
       <footer className="site-footer section-pad" id="fine-print">
         <div className="footer-brand"><a className="brand-lockup" href="#top"><span className="brand-emblem"><img className="brand-mark" src="/manus-storage/ember-bean-mark_feb835bf.png" alt="" /></span><span className="brand-name">Ember <i>&amp;</i> Bean</span></a><p>Considered coffee for ordinary days.</p></div>
-        <div className="footer-links"><div><span>Explore</span><a href="#method">Our method</a><a href="#plans">Subscriptions</a></div><div><span>Notes</span><a href="#subscribe">Contact</a><a href="#fine-print">Shipping &amp; pauses</a></div></div>
+        <div className="footer-links"><div><span>Explore</span><a href="#method" onClick={(event) => scrollToAnchor(event, "#method")}>Our method</a><a href="#quiz" onClick={(event) => scrollToAnchor(event, "#quiz")}>Find your roast</a><a href="#plans" onClick={(event) => scrollToAnchor(event, "#plans")}>Subscriptions</a></div><div><span>Notes</span><a href="#subscribe" onClick={(event) => scrollToAnchor(event, "#subscribe")}>Contact</a><a href="#fine-print" onClick={(event) => scrollToAnchor(event, "#fine-print")}>Shipping &amp; pauses</a></div></div>
         <div className="footer-bottom"><span>© 2026 Ember &amp; Bean Roasters</span><span>Made for the first pour.</span></div>
       </footer>
     </div>
