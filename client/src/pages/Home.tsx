@@ -15,6 +15,14 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const plans = [
   {
@@ -109,6 +117,12 @@ export default function Home() {
   const [quizStep, setQuizStep] = useState(0);
   const [quizScores, setQuizScores] = useState<number[]>([]);
   const [quizResult, setQuizResult] = useState<(typeof roastResults)[number] | null>(null);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [checkoutSubmitted, setCheckoutSubmitted] = useState(false);
+  const [checkoutName, setCheckoutName] = useState("");
+  const [checkoutEmail, setCheckoutEmail] = useState("");
+
+  const selectedPlanDetails = plans.find((plan) => plan.name === selectedPlan) ?? plans[1];
 
   const scrollToAnchor = (event: MouseEvent<HTMLAnchorElement>, href: string) => {
     event.preventDefault();
@@ -127,6 +141,20 @@ export default function Home() {
     setSubmitted(true);
     toast.success("Your first pour is on the list.", {
       description: "We’ll be in touch with the next step for your Ember & Bean ritual.",
+    });
+  };
+
+  const openCheckout = (planName?: string) => {
+    if (planName) setSelectedPlan(planName);
+    setCheckoutSubmitted(false);
+    setCheckoutOpen(true);
+  };
+
+  const handleCheckoutSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setCheckoutSubmitted(true);
+    toast.success("Your ritual is ready for the next step.", {
+      description: "This preview captured your plan. Connect checkout when you are ready to take payments.",
     });
   };
 
@@ -252,7 +280,7 @@ export default function Home() {
                 <div className="quiz-result-meta"><span>{quizResult.roast}</span><span>{quizResult.tasting}</span></div>
                 <p>{quizResult.description}</p>
                 <div className="quiz-result-actions">
-                  <button className="button button-primary" type="button" onClick={() => scrollToSubscribe(quizResult.plan)}>Make it my ritual <ArrowUpRight size={17} /></button>
+                  <button className="button button-primary" type="button" onClick={() => openCheckout(quizResult.plan)}>Make it my ritual <ArrowUpRight size={17} /></button>
                   <button className="quiz-reset" type="button" onClick={resetQuiz}>Retake the guide</button>
                 </div>
               </div>
@@ -364,6 +392,56 @@ export default function Home() {
           </div>
         </section>
       </main>
+
+      <Dialog open={checkoutOpen} onOpenChange={(open) => { setCheckoutOpen(open); if (!open) setCheckoutSubmitted(false); }}>
+        <DialogContent className="checkout-dialog" showCloseButton={false}>
+          <div className="checkout-shell">
+            <aside className="checkout-aside">
+              <span className="checkout-aside-kicker">Your morning match</span>
+              <strong>{quizResult?.name ?? selectedPlanDetails.name}</strong>
+              <span className="checkout-aside-roast">{quizResult?.roast ?? "A considered monthly ritual"}</span>
+              <p>{quizResult?.tasting ?? selectedPlanDetails.detail}</p>
+              <div className="checkout-aside-note"><span>Roasted for your delivery.</span><span>Pause or skip whenever you like.</span></div>
+            </aside>
+            <div className="checkout-main">
+              <DialogClose asChild>
+                <button className="checkout-close" type="button" aria-label="Close checkout"><X size={18} /></button>
+              </DialogClose>
+              {checkoutSubmitted ? (
+                <div className="checkout-success" aria-live="polite">
+                  <span className="checkout-success-mark"><Check size={20} /></span>
+                  <span className="checkout-kicker">Next step saved</span>
+                  <h3>Your {selectedPlanDetails.name} is ready.</h3>
+                  <p>We have a note of your preference, {checkoutName || "coffee friend"}. When checkout is connected, this is where your secure payment step will begin.</p>
+                  <button className="checkout-secondary" type="button" onClick={() => setCheckoutOpen(false)}>Back to the page <ArrowDown size={15} /></button>
+                </div>
+              ) : (
+                <>
+                  <DialogHeader className="checkout-header">
+                    <span className="checkout-kicker">Reserve a better morning</span>
+                    <DialogTitle className="checkout-title">Make {selectedPlanDetails.name} <em>yours.</em></DialogTitle>
+                    <DialogDescription className="checkout-description">A short note now, a fresh box next. This checkout preview keeps your recommended plan in view while you connect a payment provider later.</DialogDescription>
+                  </DialogHeader>
+                  <form className="checkout-form" onSubmit={handleCheckoutSubmit}>
+                    <div className="checkout-plan-summary"><span>Selected ritual</span><strong>{selectedPlanDetails.name}</strong><span>{selectedPlanDetails.detail}</span><b>{selectedPlanDetails.price[billing]}<small> / month</small></b></div>
+                    <div className="checkout-billing" role="group" aria-label="Checkout billing frequency">
+                      <span>Billing rhythm</span>
+                      <div><button className={billing === "monthly" ? "active" : ""} type="button" onClick={() => setBilling("monthly")}>Monthly</button><button className={billing === "annual" ? "active" : ""} type="button" onClick={() => setBilling("annual")}>Annual <small>save 12%</small></button></div>
+                    </div>
+                    <div className="checkout-form-grid">
+                      <div className="checkout-field"><label htmlFor="checkout-name">Your name</label><input id="checkout-name" value={checkoutName} onChange={(event) => setCheckoutName(event.target.value)} placeholder="Avery Morgan" required /></div>
+                      <div className="checkout-field"><label htmlFor="checkout-email">Email address</label><input id="checkout-email" type="email" value={checkoutEmail} onChange={(event) => setCheckoutEmail(event.target.value)} placeholder="you@yourmorning.com" required /></div>
+                    </div>
+                    <div className="checkout-field"><label htmlFor="checkout-grind">Preferred grind</label><select id="checkout-grind" defaultValue="whole-bean"><option value="whole-bean">Whole bean</option><option value="filter">Filter / drip</option><option value="espresso">Espresso</option></select></div>
+                    <button className="button button-primary checkout-submit" type="submit">Continue to secure checkout <ArrowUpRight size={17} /></button>
+                    <p className="checkout-trust"><ShieldCheck size={14} /> No payment is processed in this preview.</p>
+                  </form>
+                </>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <footer className="site-footer section-pad" id="fine-print">
         <div className="footer-brand"><a className="brand-lockup" href="#top"><span className="brand-emblem"><img className="brand-mark" src="/manus-storage/ember-bean-mark_feb835bf.png" alt="" /></span><span className="brand-name">Ember <i>&amp;</i> Bean</span></a><p>Considered coffee for ordinary days.</p></div>
