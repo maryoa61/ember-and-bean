@@ -121,6 +121,11 @@ export default function Home() {
   const [checkoutSubmitted, setCheckoutSubmitted] = useState(false);
   const [checkoutName, setCheckoutName] = useState("");
   const [checkoutEmail, setCheckoutEmail] = useState("");
+  const [checkoutAddress, setCheckoutAddress] = useState("");
+  const [checkoutCity, setCheckoutCity] = useState("");
+  const [checkoutRegion, setCheckoutRegion] = useState("");
+  const [checkoutPostalCode, setCheckoutPostalCode] = useState("");
+  const [deliveryFrequency, setDeliveryFrequency] = useState("every-4-weeks");
 
   const selectedPlanDetails = plans.find((plan) => plan.name === selectedPlan) ?? plans[1];
 
@@ -432,7 +437,14 @@ export default function Home() {
                       <div className="checkout-field"><label htmlFor="checkout-name">Your name</label><input id="checkout-name" value={checkoutName} onChange={(event) => setCheckoutName(event.target.value)} placeholder="Avery Morgan" required /></div>
                       <div className="checkout-field"><label htmlFor="checkout-email">Email address</label><input id="checkout-email" type="email" value={checkoutEmail} onChange={(event) => setCheckoutEmail(event.target.value)} placeholder="you@yourmorning.com" required /></div>
                     </div>
-                    <div className="checkout-field"><label htmlFor="checkout-grind">Preferred grind</label><select id="checkout-grind" defaultValue="whole-bean"><option value="whole-bean">Whole bean</option><option value="filter">Filter / drip</option><option value="espresso">Espresso</option></select></div>
+                    <div className="checkout-field checkout-address-wide"><label htmlFor="checkout-address">Shipping address</label><input id="checkout-address" value={checkoutAddress} onChange={(event) => setCheckoutAddress(event.target.value)} placeholder="12 Morning Lane" required /></div>
+                    <div className="checkout-form-grid checkout-address-grid">
+                      <div className="checkout-field"><label htmlFor="checkout-city">City</label><input id="checkout-city" value={checkoutCity} onChange={(event) => setCheckoutCity(event.target.value)} placeholder="Portland" required /></div>
+                      <div className="checkout-field"><label htmlFor="checkout-region">State / region</label><input id="checkout-region" value={checkoutRegion} onChange={(event) => setCheckoutRegion(event.target.value)} placeholder="OR" required /></div>
+                      <div className="checkout-field"><label htmlFor="checkout-postal-code">Postal code</label><input id="checkout-postal-code" value={checkoutPostalCode} onChange={(event) => setCheckoutPostalCode(event.target.value)} placeholder="97205" required /></div>
+                      <div className="checkout-field"><label htmlFor="checkout-grind">Preferred grind</label><select id="checkout-grind" defaultValue="whole-bean"><option value="whole-bean">Whole bean</option><option value="filter">Filter / drip</option><option value="espresso">Espresso</option></select></div>
+                    </div>
+                    <div className="checkout-field"><label htmlFor="checkout-frequency">Delivery frequency</label><select id="checkout-frequency" value={deliveryFrequency} onChange={(event) => setDeliveryFrequency(event.target.value)}><option value="every-2-weeks">Every 2 weeks</option><option value="every-4-weeks">Every 4 weeks</option><option value="every-6-weeks">Every 6 weeks</option><option value="every-8-weeks">Every 8 weeks</option></select></div>
                     <button className="button button-primary checkout-submit" type="submit">Continue to secure checkout <ArrowUpRight size={17} /></button>
                     <p className="checkout-trust"><ShieldCheck size={14} /> No payment is processed in this preview.</p>
                   </form>

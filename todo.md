@@ -29,3 +29,11 @@
 - [x] Implement an accessible responsive checkout modal for the matched subscription plan.
 - [x] Add checkout form validation and a confirmation state without claiming payment completion.
 - [x] Validate desktop and mobile modal behavior, then save an updated checkpoint.
+
+## Checkout expansion and GitHub sync
+
+- [x] Inspect the current checkout state and form structure.
+- [x] Add shipping-address fields and preferred delivery frequency.
+- [x] Validate the expanded modal responsively and save a new checkpoint.
+- [ ] Push the latest checkpoint to the public GitHub repository.
+- [ ] Verify the public `main` branch and report the sync.
